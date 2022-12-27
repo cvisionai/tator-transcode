@@ -22,7 +22,8 @@ To run a container:
 docker run -it --rm transcode-service
 ```
 
-To enable auto-formatting prior to commits (developers only):
+For developers:
 ```
-pre-commit install
+pre-commit install # Installs a pre-commit hook for code formatting
+pre-commit run --all-files # Runs code formatter manually
 ```
