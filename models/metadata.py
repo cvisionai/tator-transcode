@@ -1,6 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field
 
+
 class Metadata(BaseModel):
     """
     Metadata - a model defined in OpenAPI
@@ -13,5 +14,6 @@ class Metadata(BaseModel):
     status: Optional[str] = Field(alias="status", default=None)
     encode_status: Optional[List[str]] = Field(alias="encode_status", default=None)
     artifacts: Optional[List[str]] = Field(alias="artifacts", default=None)
+
 
 Metadata.update_forward_refs()

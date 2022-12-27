@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field, validator
 from .upload import Upload
 from .webhook import Webhook
 
+
 class Encode(BaseModel):
     """
     Encode - a model defined in OpenAPI
@@ -21,7 +22,9 @@ class Encode(BaseModel):
     width: int = Field(alias="width")
     height: int = Field(alias="height")
     rate: Optional[float] = Field(alias="rate", default=None)
-    settings: Optional[Dict[str, Union[str, int, float]]] = Field(alias="settings", default=None)
+    settings: Optional[Dict[str, Union[str, int, float]]] = Field(
+        alias="settings", default=None
+    )
     upload_list: List[Upload] = Field(alias="upload_list")
     webhook_list: Optional[List[Webhook]] = Field(alias="webhook_list", default=None)
 
@@ -39,5 +42,6 @@ class Encode(BaseModel):
     def rate_min(cls, value):
         assert value >= 0
         return value
+
 
 Encode.update_forward_refs()

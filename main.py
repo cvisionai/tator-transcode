@@ -22,6 +22,7 @@ app = FastAPI(
     version="0.0.0",
 )
 
+
 @app.delete(
     "/jobs",
     responses={

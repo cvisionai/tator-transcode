@@ -2,6 +2,7 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, Field, validator
 from models.header import Header
 
+
 class Upload(BaseModel):
     """
     Upload - a model defined in OpenAPI
@@ -19,5 +20,6 @@ class Upload(BaseModel):
     def chunk_size_min(cls, value):
         assert value >= 0
         return value
+
 
 Upload.update_forward_refs()

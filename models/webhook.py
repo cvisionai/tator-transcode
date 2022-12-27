@@ -2,6 +2,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 from models.header import Header
 
+
 class Webhook(BaseModel):
     """
     Webhook - a model defined in OpenAPI
@@ -16,5 +17,6 @@ class Webhook(BaseModel):
     method: str = Field(alias="method")
     stage: str = Field(alias="stage")
     header_list: Optional[List[Header]] = Field(alias="header_list", default=None)
+
 
 Webhook.update_forward_refs()
