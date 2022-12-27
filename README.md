@@ -21,3 +21,8 @@ To run a container:
 ```
 docker run -it --rm transcode-service
 ```
+
+To enable auto-formatting prior to commits (developers only):
+```
+pre-commit install
+```

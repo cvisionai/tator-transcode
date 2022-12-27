@@ -26,7 +26,7 @@ app = FastAPI(
 @app.delete(
     "/jobs",
     responses={
-        200: {"model": Response, "description": "List of running jobs."},
+        200: {"model": Response, "description": "Successful deletion of jobs."},
         400: {"description": "Error deleting the transcode jobs."},
     },
     tags=["Transcode"],
