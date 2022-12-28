@@ -33,9 +33,8 @@ app = FastAPI(
     summary="Deletes a list of running transcodes.",
     response_model_by_alias=True,
 )
-async def jobs_delete(
-    filter: List[Filter] = Body(None, description=""),
-) -> Response:
+def jobs_delete(filter_list: List[Filter]) -> Response:
+
     ...
 
 
@@ -49,9 +48,7 @@ async def jobs_delete(
     summary="Create one or more transcode jobs.",
     response_model_by_alias=True,
 )
-async def jobs_post(
-    job: List[Job] = Body(None, description=""),
-) -> Response:
+def jobs_post(job_list: List[Job]) -> Response:
     ...
 
 
@@ -65,7 +62,5 @@ async def jobs_post(
     summary="Returns a list of running transcodes.",
     response_model_by_alias=True,
 )
-async def jobs_put(
-    filter: List[Filter] = Body(None, description=""),
-) -> List[Job]:
+def jobs_put(filter_list: List[Filter]) -> List[Job]:
     ...
