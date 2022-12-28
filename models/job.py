@@ -11,10 +11,10 @@ class Job(BaseModel):
     """
 
     url: str = Field(alias="url", description="URL where source video file is hosted.")
-    size: Optional[int] = Field(
+    name: str = Field(alias="name", description="Name of the video file.")
+    size: int = Field(
         alias="size",
-        default=None,
-        description="Size of the file in bytes. Required when the given URL does not accept HEAD requests.",
+        description="Size of the file in bytes.",
     )
     header_list: Optional[List[Header]] = Field(
         alias="header_list",
@@ -25,6 +25,11 @@ class Job(BaseModel):
         alias="encode_list", description="List of encode settings, one per output file."
     )
     metadata: Optional[Metadata] = Field(alias="metadata", default=None)
+
+    @validator("size")
+    def size_min(cls, value):
+        assert value >= 1
+        return value
 
 
 Job.update_forward_refs()
