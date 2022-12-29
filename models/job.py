@@ -1,7 +1,5 @@
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
-from models.encode import Encode
-from models.header import Header
 from models.metadata import Metadata
 
 
@@ -35,6 +33,16 @@ class Job(BaseModel):
         description="Vertical resolutions below this will be transcoded with "
         "multi-headed ffmpeg.",
     )
+    status: Optional[str] = Field(
+        alias="status",
+        default=None,
+        description="Overall status of the job. Set by the service (ignored on job creation).",
+    )
+
+    @validator("status")
+    def status_enum(cls, value):
+        assert value.lower() in ["pending", "running", "succeeded", "failed"]
+        return value.lower()
 
 
 Job.update_forward_refs()

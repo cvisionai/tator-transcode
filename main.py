@@ -12,7 +12,6 @@ from fastapi import (
     Security,
     status,
 )
-from models.filter import Filter
 from models.job import Job
 from models.response import Response
 
@@ -52,7 +51,7 @@ def jobs_post(job_list: List[Job]) -> Response:
     ...
 
 
-@app.put(
+@app.get(
     "/jobs",
     responses={
         200: {"model": List[Job], "description": "List of running jobs."},
@@ -62,5 +61,9 @@ def jobs_post(job_list: List[Job]) -> Response:
     summary="Returns a list of running transcodes.",
     response_model_by_alias=True,
 )
-def jobs_put(filter_list: List[Filter]) -> List[Job]:
+def jobs_get(
+    uid: Union[str, None] = None,
+    gid: Union[str, None] = None,
+    project: Union[int, None] = None,
+) -> List[Job]:
     ...
