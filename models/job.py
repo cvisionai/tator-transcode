@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 from models.encode import Encode
 from models.header import Header
@@ -11,25 +11,30 @@ class Job(BaseModel):
     """
 
     url: str = Field(alias="url", description="URL where source video file is hosted.")
+    host: str = Field(alias="host", description="Tator host URL.")
+    token: str = Field(alias="token", description="Tator API token.")
+    project: int = Field(
+        alias="project", description="Unique integer specifying project ID."
+    )
+    type: int = Field(
+        alias="type", description="Unique integer specifying a media type."
+    )
     name: str = Field(alias="name", description="Name of the video file.")
-    size: int = Field(
-        alias="size",
-        description="Size of the file in bytes.",
+    section: str = Field(alias="section", description="Media section name.")
+    attributes: Optional[Dict[str, Any]] = Field(
+        alias="attributes", description="Attributes to set on the media."
     )
-    header_list: Optional[List[Header]] = Field(
-        alias="header_list",
-        default=None,
-        description="List of headers used for download requests on the source video file.",
+    media_id: Optional[int] = Field(
+        alias="media_id", description="Media ID.", default=-1
     )
-    encode_list: List[Encode] = Field(
-        alias="encode_list", description="List of encode settings, one per output file."
+    gid: Optional[str] = Field(alias="gid", description="Upload group ID.")
+    uid: Optional[str] = Field(alias="uid", description="Upload unique ID.")
+    group_to: Optional[int] = Field(
+        alias="group_to",
+        default=1080,
+        description="Vertical resolutions below this will be transcoded with "
+        "multi-headed ffmpeg.",
     )
-    metadata: Optional[Metadata] = Field(alias="metadata", default=None)
-
-    @validator("size")
-    def size_min(cls, value):
-        assert value >= 1
-        return value
 
 
 Job.update_forward_refs()
