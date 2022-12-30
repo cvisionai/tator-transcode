@@ -1,4 +1,4 @@
-FROM cvisionai/svt_encoder:v0.0.9
+FROM python:3.7
 
 WORKDIR /usr/src/app
 
