@@ -22,9 +22,7 @@ class Job(BaseModel):
     attributes: Optional[Dict[str, Any]] = Field(
         alias="attributes", description="Attributes to set on the media."
     )
-    media_id: Optional[int] = Field(
-        alias="media_id", description="Media ID.", default=-1
-    )
+    media_id: Optional[int] = Field(alias="media_id", description="Media ID.")
     gid: Optional[str] = Field(alias="gid", description="Upload group ID.")
     uid: Optional[str] = Field(alias="uid", description="Upload unique ID.")
     group_to: Optional[int] = Field(
