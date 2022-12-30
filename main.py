@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Union
 from fastapi import (
     FastAPI,
     Body,
@@ -14,7 +14,7 @@ from fastapi import (
 )
 from redis import Redis
 from rq import Queue
-from rq import Job as Qjob
+from rq.job import Job as Qjob
 from models.job import Job
 from models.response import Response
 from transcode import transcode

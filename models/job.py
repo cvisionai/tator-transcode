@@ -1,6 +1,5 @@
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
-from models.metadata import Metadata
+from pydantic import BaseModel, Field, validator
 
 
 class Job(BaseModel):
