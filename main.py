@@ -1,3 +1,4 @@
+import os
 from typing import Dict, List, Union
 from fastapi import (
     FastAPI,
@@ -45,7 +46,7 @@ def _qjob_to_job(qjob):
 
 def get_queue():
     rds = Redis(host=os.getenv("REDIS_HOST"))
-    queue = Queue("transcodes", connection=redis)
+    queue = Queue("transcodes", connection=rds)
     return rds, queue
 
 
