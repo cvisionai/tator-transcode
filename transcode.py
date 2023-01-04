@@ -12,26 +12,26 @@ def transcode(job):
         "-m",
         "tator.transcode",
         "--url",
-        job.url,
+        job['url'],
         "--host",
-        job.host,
+        job['host'],
         "--token",
-        job.token,
+        job['token'],
         "--project",
-        str(job.project),
+        str(job['project']),
         "--type",
-        str(job.type),
+        str(job['type']),
         "--name",
-        job.name,
+        job['name'],
         "--section",
-        job.section,
+        job['section'],
         "--uid",
-        job.uid,
+        job['uid'],
         "--gid",
-        job.gid,
+        job['gid'],
     ]
-    if job.attributes is not None:
-        cmd += ["--attributes", json.dumps(job.attributes)]
-    if job.media_id is not None:
-        cmd += ["--media_id", job.media_id]
+    if job['attributes'] is not None:
+        cmd += ["--attributes", json.dumps(job['attributes'])]
+    if job['media_id'] is not None:
+        cmd += ["--media_id", job['media_id']]
     subprocess.run(cmd, check=True)

@@ -37,23 +37,34 @@ def _qjob_to_job(qjob):
     job = qjob.args[0]
     status = qjob.get_status(refresh=True)
     if status in ["queued", "deferred", "scheduled"]:
-        job.status = "pending"
+        job['status'] = "pending"
     if status == "started":
-        job.status = "running"
+        job['status'] = "running"
     if status in ["canceled", "stopped"]:
-        job.status = "canceled"
+        job['status'] = "canceled"
     if status == "finished":
-        job.status = "completed"
+        job['status'] = "completed"
     if status == "failed":
-        job.status = status
-    job.id = qjob.id
-    job.start_time = qjob.enqueued_at
-    job.stop_time = qjob.ended_at
-    return job
+        job['status'] = status
+    if qjob.id is not None:
+        job['id'] = qjob.id
+    if qjob.enqueued_at is not None:
+        job['start_time'] = qjob.enqueued_at.isoformat()
+    if qjob.ended_at is not None:
+        job['stop_time'] = qjob.ended_at.isoformat()
+    return Job(**job)
+
+
+def _gid_key(gid):
+    return f"transcode_gid_{gid}"
+
+
+def _project_key(project):
+    return f"transcode_project_{project}"
 
 
 def get_queue():
-    rds = StrictRedis(host=os.getenv("REDIS_HOST"), charset='utf-8', decode_responses=True)
+    rds = Redis(host=os.getenv("REDIS_HOST"))
     queue = Queue("transcodes", connection=rds)
     return rds, queue
 
@@ -63,7 +74,19 @@ def append_value(rds, key, value):
     if value_list is None:
         rds.set(key, value)
     else:
-        rds.set(key, value_list + f",{value}")
+        rds.set(key, value_list.decode('utf-8') + f",{value}")
+
+
+def remove_value(rds, key, value):
+    value_list = rds.get(key)
+    if value_list is not None:
+        value_list = value_list.decode('utf-8').split(',')
+        logger.info(f"VALUE: {value}")
+        logger.info(f"VALUE LIST: {value_list}")
+        logger.info(f"VALUE IN LIST: {value in value_list}")
+        if value in value_list:
+            value_list.remove(value)
+        rds.set(key, ','.join(value_list))
 
 
 def get_list(rds, key):
@@ -71,7 +94,7 @@ def get_list(rds, key):
     if value_list is None:
         value_list = []
     else:
-        value_list = value_list.split(",")
+        value_list = value_list.decode('utf-8').split(",")
     return value_list
 
 
@@ -92,14 +115,16 @@ def jobs_delete(
 ) -> Response:
     rds, queue = get_queue()
     if gid is not None:
-        uid_list = get_list(gid)
+        uid_list = get_list(rds, _gid_key(gid))
     elif project is not None:
-        uid_list = get_list(project)
+        uid_list = get_list(rds, _project_key(project))
     elif uid_list is None:
         raise Exception("At least one parameter specifying jobs must be provided!")
     job_list = Qjob.fetch_many(uid_list, connection=rds)
     for job in job_list:
         job.cancel()
+        remove_value(rds, _gid_key(gid), job.args[0]['uid'])
+        remove_value(rds, _project_key(gid), job.args[0]['uid'])
     return Response(message="Successfully canceled {len(job_list)} jobs!")
 
 
@@ -121,9 +146,9 @@ def jobs_post(job_list: List[Job]) -> Response:
             job.uid = str(uuid1())
         if job.gid is None:
             job.gid = str(uuid1())
-        append_value(rds, job.gid, job.uid)
-        append_value(rds, f"project_{job.project}", job.uid)
-        qjob_list.append(queue.enqueue(transcode, job, job_id=job.uid))
+        append_value(rds, _gid_key(job.gid), job.uid)
+        append_value(rds, _project_key(job.project), job.uid)
+        qjob_list.append(queue.enqueue(transcode, job.dict(), job_id=job.uid))
     return [_qjob_to_job(job) for job in qjob_list]
 
 
@@ -144,10 +169,10 @@ def jobs_put(
 ) -> List[Job]:
     rds, queue = get_queue()
     if gid is not None:
-        uid_list = get_list(gid)
+        uid_list = get_list(rds, _gid_key(gid))
     elif project is not None:
-        uid_list = get_list(project)
+        uid_list = get_list(rds, _project_key(project))
     elif uid_list is None:
         raise Exception("At least one parameter specifying jobs must be provided!")
-    job_list = Qjob.fetch_many(uid_list, connection=rds)
+    qjob_list = Qjob.fetch_many(uid_list, connection=rds)
     return [_qjob_to_job(job) for job in qjob_list]

@@ -67,7 +67,9 @@ class Job(BaseModel):
 
     @validator("start_time", "stop_time")
     def time_iso8601(cls, value):
-        return parse(value).isoformat()
+        if value is not None:
+            return parse(value).isoformat()
+        return value
 
 
 Job.update_forward_refs()
