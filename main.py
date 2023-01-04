@@ -33,7 +33,7 @@ def _qjob_to_job(qjob):
         job.status = 'pending'
     if status == 'started':
         job.status = 'running'
-    if status in ['canceled', 'stopped':
+    if status in ['canceled', 'stopped']:
         job.status = 'canceled'
     if status == 'finished':
         job.status = 'completed'
@@ -107,6 +107,7 @@ def jobs_delete(
 )
 def jobs_post(job_list: List[Job]) -> Response:
     rds, queue = get_queue()
+    qjob_list = []
     for job in job_list:
         if job.uid is None:
             job.uid = str(uuid1())
@@ -114,8 +115,7 @@ def jobs_post(job_list: List[Job]) -> Response:
             job.gid = str(uuid1())
         append_value(job.gid, job.uid)
         append_value(f"project_{job.project}", job.uid)
-        queue.enqueue(transcode, job, job_id=job.uid)
-    return job_list
+        qjob_list.append(queue.enqueue(transcode, job, job_id=job.uid))
     return [_qjob_to_job(job) for job in qjob_list]
 
 
@@ -135,14 +135,14 @@ def jobs_get(
     project: Union[int, None] = None,
 ) -> List[Job]:
     rds, queue = get_queue()
-    job_list = []
+    qjob_list = []
     if uid is not None:
         job = Qjob.fetch(uid, connection=rds)
-        job_list.append(job)
+        qjob_list.append(job)
     elif gid is not None:
         uid_list = get_list(gid)
-        job_list += Qjob.fetch_many(uid_list, connection=rds)
+        qjob_list += Qjob.fetch_many(uid_list, connection=rds)
     elif project is not None:
         uid_list = get_list(project)
-        job_list += Qjob.fetch_many(uid_list, connection=rds)
+        qjob_list += Qjob.fetch_many(uid_list, connection=rds)
     return [_qjob_to_job(job) for job in qjob_list]
