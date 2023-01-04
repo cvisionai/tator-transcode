@@ -113,8 +113,8 @@ def jobs_post(job_list: List[Job]) -> Response:
             job.uid = str(uuid1())
         if job.gid is None:
             job.gid = str(uuid1())
-        append_value(job.gid, job.uid)
-        append_value(f"project_{job.project}", job.uid)
+        append_value(rds, job.gid, job.uid)
+        append_value(rds, f"project_{job.project}", job.uid)
         qjob_list.append(queue.enqueue(transcode, job, job_id=job.uid))
     return [_qjob_to_job(job) for job in qjob_list]
 
