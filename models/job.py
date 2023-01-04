@@ -1,5 +1,6 @@
 from typing import List, Optional, Dict, Any, Union
 from pydantic import BaseModel, Field, validator
+from dateutil.parser import parse
 
 
 class Job(BaseModel):
@@ -9,6 +10,7 @@ class Job(BaseModel):
 
     url: str = Field(alias="url", description="URL where source video file is hosted.")
     size: int = Field(alias="size", description="Size of the video file in bytes.")
+    md5: str = Field(alias="md5", description="MD5 sum of up to the first 100MB of this file.")
     host: str = Field(alias="host", description="Tator host URL.")
     token: str = Field(alias="token", description="Tator API token.")
     project: int = Field(
@@ -31,15 +33,25 @@ class Job(BaseModel):
         description="Vertical resolutions below this will be transcoded with "
         "multi-headed ffmpeg.",
     )
+    id: Optional[Union[str, int]] = Field(
+        alias="id",
+        default=None,
+        description="ID of job assigned by service (ignored on job creation).",
+    )
     status: Optional[str] = Field(
         alias="status",
         default=None,
         description="Overall status of the job. Set by the service (ignored on job creation).",
     )
-    id: Optional[Union[str, int]] = Field(
-        alias="id",
+    start_time: Optional[str] = Field(
+        alias="start_time",
         default=None,
-        description="ID of job assigned by service (ignored on job creation).",
+        description="ISO8601 datetime string indicating start time of job."
+    )
+    stop_time: Optional[str] = Field(
+        alias="stop_time",
+        default=None,
+        description="ISO8601 datetime string indicating stop time of job."
     )
 
     @validator("status")
@@ -52,6 +64,10 @@ class Job(BaseModel):
             "failed",
         ]
         return value.lower()
+
+    @validator("start_time", "stop_time")
+    def time_iso8601(cls, value):
+        return parse(value).isoformat()
 
 
 Job.update_forward_refs()

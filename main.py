@@ -13,7 +13,7 @@ from fastapi import (
     Security,
     status,
 )
-from redis import Redis
+from redis import StrictRedis
 from rq import Queue
 from rq.job import Job as Qjob
 from models.job import Job
@@ -41,11 +41,13 @@ def _qjob_to_job(qjob):
     if status == "failed":
         job.status = status
     job.id = qjob.id
+    job.start_time = qjob.enqueued_at
+    job.stop_time = qjob.ended_at
     return job
 
 
 def get_queue():
-    rds = Redis(host=os.getenv("REDIS_HOST"))
+    rds = StrictRedis(host=os.getenv("REDIS_HOST"), charset='utf-8', decode_responses=True)
     queue = Queue("transcodes", connection=rds)
     return rds, queue
 
