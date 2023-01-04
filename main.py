@@ -75,24 +75,21 @@ def get_list(rds, key):
     response_model_by_alias=True,
 )
 def jobs_delete(
-    uid: Union[str, None] = None,
+    uid_list: List[str] = Body(default=None),
     gid: Union[str, None] = None,
     project: Union[int, None] = None,
 ) -> Response:
     rds, queue = get_queue()
-    job_list = []
-    if uid is not None:
-        job = Qjob.fetch(uid, connection=rds)
-        job_list.append(job)
-    elif gid is not None:
+    if gid is not None:
         uid_list = get_list(gid)
-        job_list += Qjob.fetch_many(uid_list, connection=rds)
     elif project is not None:
         uid_list = get_list(project)
-        job_list += Qjob.fetch_many(uid_list, connection=rds)
+    elif uid_list is None:
+        raise Exception("At least one parameter specifying jobs must be provided!")
+    job_list = Qjob.fetch_many(uid_list, connection=rds)
     for job in job_list:
         job.cancel()
-    return Response(message="Successfully deleted {len(job_list)} jobs!")
+    return Response(message="Successfully canceled {len(job_list)} jobs!")
 
 
 @app.post(
@@ -119,7 +116,7 @@ def jobs_post(job_list: List[Job]) -> Response:
     return [_qjob_to_job(job) for job in qjob_list]
 
 
-@app.get(
+@app.put(
     "/jobs",
     responses={
         200: {"model": List[Job], "description": "List of running jobs."},
@@ -129,20 +126,17 @@ def jobs_post(job_list: List[Job]) -> Response:
     summary="Returns a list of running transcodes.",
     response_model_by_alias=True,
 )
-def jobs_get(
-    uid: Union[str, None] = None,
+def jobs_put(
+    uid_list: List[str] = Body(default=None),
     gid: Union[str, None] = None,
     project: Union[int, None] = None,
 ) -> List[Job]:
     rds, queue = get_queue()
-    qjob_list = []
-    if uid is not None:
-        job = Qjob.fetch(uid, connection=rds)
-        qjob_list.append(job)
-    elif gid is not None:
+    if gid is not None:
         uid_list = get_list(gid)
-        qjob_list += Qjob.fetch_many(uid_list, connection=rds)
     elif project is not None:
         uid_list = get_list(project)
-        qjob_list += Qjob.fetch_many(uid_list, connection=rds)
+    elif uid_list is None:
+        raise Exception("At least one parameter specifying jobs must be provided!")
+    job_list = Qjob.fetch_many(uid_list, connection=rds)
     return [_qjob_to_job(job) for job in qjob_list]
