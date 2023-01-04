@@ -26,6 +26,21 @@ app = FastAPI(
 )
 
 
+def _qjob_to_job(qjob):
+    job = qjob.args[0]
+    status = qjob.get_status(refresh=True)
+    if status in ['queued', 'deferred', 'scheduled']:
+        job.status = 'pending'
+    if status == 'started':
+        job.status = 'running'
+    if status in ['canceled', 'stopped':
+        job.status = 'canceled'
+    if status == 'finished':
+        job.status = 'completed'
+    if status == 'failed':
+        job.status = status
+    job.id = qjob.id
+    return job
 def get_queue():
     rds = Redis(host=os.getenv("REDIS_HOST"))
     queue = Queue("transcodes", connection=redis)
@@ -83,7 +98,7 @@ def jobs_delete(
 @app.post(
     "/jobs",
     responses={
-        201: {"model": Response, "description": "Successful creation of jobs."},
+        201: {"model": List[Job], "description": "List of created jobs."},
         400: {"description": "Error creating the transcode jobs."},
     },
     tags=["Transcode"],
@@ -101,6 +116,7 @@ def jobs_post(job_list: List[Job]) -> Response:
         append_value(f"project_{job.project}", job.uid)
         queue.enqueue(transcode, job, job_id=job.uid)
     return job_list
+    return [_qjob_to_job(job) for job in qjob_list]
 
 
 @app.get(
@@ -129,5 +145,4 @@ def jobs_get(
     elif project is not None:
         uid_list = get_list(project)
         job_list += Qjob.fetch_many(uid_list, connection=rds)
-    job_list = [job.args[0] for job in job_list]
-    return job_list
+    return [_qjob_to_job(job) for job in qjob_list]

@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from pydantic import BaseModel, Field, validator
 
 
@@ -8,6 +8,7 @@ class Job(BaseModel):
     """
 
     url: str = Field(alias="url", description="URL where source video file is hosted.")
+    size: int = Field(alias="size", description="Size of the video file in bytes.")
     host: str = Field(alias="host", description="Tator host URL.")
     token: str = Field(alias="token", description="Tator API token.")
     project: int = Field(
@@ -35,10 +36,11 @@ class Job(BaseModel):
         default=None,
         description="Overall status of the job. Set by the service (ignored on job creation).",
     )
+    id: Optional[Union[str, int]] = Field(alias="id", default=None, description="ID of job assigned by service (ignored on job creation).")
 
     @validator("status")
     def status_enum(cls, value):
-        assert value.lower() in ["pending", "running", "succeeded", "failed"]
+        assert value.lower() in ["pending", "running", "canceled", "succeeded", "failed"]
         return value.lower()
 
 

@@ -6,7 +6,7 @@ class Response(BaseModel):
     """
     Response - Simple response containing a message.
 
-        message: The message of this JobsDelete201Response [Optional].
+        message: Descriptive message [Optional].
     """
 
     message: Optional[str] = Field(alias="message", default=None)
