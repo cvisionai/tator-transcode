@@ -1,4 +1,6 @@
 import os
+from logging.config import dictConfig
+import logging
 from typing import Dict, List, Union
 from fastapi import (
     FastAPI,
@@ -13,12 +15,16 @@ from fastapi import (
     Security,
     status,
 )
-from redis import StrictRedis
+from redis import Redis
 from rq import Queue
 from rq.job import Job as Qjob
 from models.job import Job
 from models.response import Response
+from config import LogConfig
 from transcode import transcode
+
+dictConfig(LogConfig().dict())
+logger = logging.getLogger("transcode")
 
 app = FastAPI(
     title="Transcode",
