@@ -29,18 +29,20 @@ app = FastAPI(
 def _qjob_to_job(qjob):
     job = qjob.args[0]
     status = qjob.get_status(refresh=True)
-    if status in ['queued', 'deferred', 'scheduled']:
-        job.status = 'pending'
-    if status == 'started':
-        job.status = 'running'
-    if status in ['canceled', 'stopped']:
-        job.status = 'canceled'
-    if status == 'finished':
-        job.status = 'completed'
-    if status == 'failed':
+    if status in ["queued", "deferred", "scheduled"]:
+        job.status = "pending"
+    if status == "started":
+        job.status = "running"
+    if status in ["canceled", "stopped"]:
+        job.status = "canceled"
+    if status == "finished":
+        job.status = "completed"
+    if status == "failed":
         job.status = status
     job.id = qjob.id
     return job
+
+
 def get_queue():
     rds = Redis(host=os.getenv("REDIS_HOST"))
     queue = Queue("transcodes", connection=redis)

@@ -36,11 +36,21 @@ class Job(BaseModel):
         default=None,
         description="Overall status of the job. Set by the service (ignored on job creation).",
     )
-    id: Optional[Union[str, int]] = Field(alias="id", default=None, description="ID of job assigned by service (ignored on job creation).")
+    id: Optional[Union[str, int]] = Field(
+        alias="id",
+        default=None,
+        description="ID of job assigned by service (ignored on job creation).",
+    )
 
     @validator("status")
     def status_enum(cls, value):
-        assert value.lower() in ["pending", "running", "canceled", "succeeded", "failed"]
+        assert value.lower() in [
+            "pending",
+            "running",
+            "canceled",
+            "succeeded",
+            "failed",
+        ]
         return value.lower()
 
 
