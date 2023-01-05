@@ -2,6 +2,7 @@ import os
 from logging.config import dictConfig
 import logging
 from typing import Dict, List, Union
+from types import SimpleNamespace
 from fastapi import (
     FastAPI,
     Body,
@@ -21,7 +22,6 @@ from rq.job import Job as Qjob
 from models.job import Job
 from models.response import Response
 from config import LogConfig
-from transcode import transcode
 
 dictConfig(LogConfig().dict())
 logger = logging.getLogger("transcode")
@@ -148,7 +148,13 @@ def jobs_post(job_list: List[Job]) -> Response:
             job.gid = str(uuid1())
         append_value(rds, _gid_key(job.gid), job.uid)
         append_value(rds, _project_key(job.project), job.uid)
-        qjob_list.append(queue.enqueue(transcode, job.dict(), job_id=job.uid))
+        args = SimpleNamespace(**job.dict())
+        args.path = None
+        args.extension = None
+        args.work_dir = None
+        args.cleanup = None
+        args.group_to = 1080
+        qjob_list.append(queue.enqueue('tator.transcode.__main__.transcode_main', args, job_id=job.uid))
     return [_qjob_to_job(job) for job in qjob_list]
 
 
