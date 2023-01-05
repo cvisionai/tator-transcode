@@ -34,7 +34,11 @@ app = FastAPI(
 
 
 def _qjob_to_job(qjob):
-    job = qjob.args[0]
+    job = vars(qjob.args[0])
+    job.pop('work_dir', None)
+    job.pop('path', None)
+    job.pop('cleanup', None)
+    job.pop('extension', None)
     status = qjob.get_status(refresh=True)
     if status in ["queued", "deferred", "scheduled"]:
         job['status'] = "pending"
@@ -148,12 +152,14 @@ def jobs_post(job_list: List[Job]) -> Response:
             job.gid = str(uuid1())
         append_value(rds, _gid_key(job.gid), job.uid)
         append_value(rds, _project_key(job.project), job.uid)
-        args = SimpleNamespace(**job.dict())
-        args.path = None
-        args.extension = None
-        args.work_dir = None
-        args.cleanup = None
-        args.group_to = 1080
+        args = {
+            **job.dict(), 
+            'path': None,
+            'work_dir': '/tmp',
+            'cleanup': False,
+            'extension': None
+        }
+        args = SimpleNamespace(**args)
         qjob_list.append(queue.enqueue('tator.transcode.__main__.transcode_main', args, job_id=job.uid))
     return [_qjob_to_job(job) for job in qjob_list]
 
