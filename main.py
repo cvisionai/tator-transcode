@@ -47,7 +47,7 @@ def _qjob_to_job(qjob):
     if status in ["canceled", "stopped"]:
         job['status'] = "canceled"
     if status == "finished":
-        job['status'] = "completed"
+        job['status'] = "succeeded"
     if status == "failed":
         job['status'] = status
     if qjob.id is not None:
@@ -85,9 +85,6 @@ def remove_value(rds, key, value):
     value_list = rds.get(key)
     if value_list is not None:
         value_list = value_list.decode('utf-8').split(',')
-        logger.info(f"VALUE: {value}")
-        logger.info(f"VALUE LIST: {value_list}")
-        logger.info(f"VALUE IN LIST: {value in value_list}")
         if value in value_list:
             value_list.remove(value)
         rds.set(key, ','.join(value_list))
@@ -124,12 +121,13 @@ def jobs_delete(
         uid_list = get_list(rds, _project_key(project))
     elif uid_list is None:
         raise Exception("At least one parameter specifying jobs must be provided!")
-    job_list = Qjob.fetch_many(uid_list, connection=rds)
-    for job in job_list:
-        job.cancel()
-        remove_value(rds, _gid_key(gid), job.args[0]['uid'])
-        remove_value(rds, _project_key(gid), job.args[0]['uid'])
-    return Response(message="Successfully canceled {len(job_list)} jobs!")
+    qjob_list = Qjob.fetch_many(uid_list, connection=rds)
+    for qjob in qjob_list:
+        qjob.cancel()
+        job = qjob.args[0]
+        remove_value(rds, _gid_key(job.gid), job.uid)
+        remove_value(rds, _project_key(job.project), job.uid)
+    return Response(message=f"Successfully canceled {len(qjob_list)} jobs!")
 
 
 @app.post(
