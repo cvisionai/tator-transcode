@@ -185,4 +185,4 @@ def jobs_put(
     elif uid_list is None:
         raise Exception("At least one parameter specifying jobs must be provided!")
     qjob_list = Qjob.fetch_many(uid_list, connection=rds)
-    return [_qjob_to_job(job) for job in qjob_list]
+    return [_qjob_to_job(job) for job in qjob_list if job is not None]
