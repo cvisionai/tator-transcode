@@ -158,7 +158,7 @@ def jobs_post(job_list: List[Job]) -> Response:
             'extension': None
         }
         args = SimpleNamespace(**args)
-        qjob_list.append(queue.enqueue('tator.transcode.__main__.transcode_main', args, job_id=job.uid))
+        qjob_list.append(queue.enqueue('tator.transcode.__main__.transcode_main', args, job_id=job.uid, job_timeout=3600*96))
     return [_qjob_to_job(job) for job in qjob_list]
 
 
