@@ -22,6 +22,7 @@ from rq.job import Job as Qjob
 from models.job import Job
 from models.response import Response
 from config import LogConfig
+from urllib.parse import urlparse
 
 dictConfig(LogConfig().dict())
 logger = logging.getLogger("transcode")
@@ -66,6 +67,17 @@ def _gid_key(gid):
 def _project_key(project):
     return f"transcode_project_{project}"
 
+def _use_internal_host(url):
+    """ Checks if the download url contains localhost, if so
+        replaces external host with minio host.
+    """
+    hostname = urlparse(url).hostname
+    is_localhost = hostname in ['localhost', '127.0.0.1']
+    if is_localhost:
+        external_host = os.getenv("DEFAULT_LIVE_EXTERNAL_HOST")
+        minio_host = os.getenv("DEFAULT_LIVE_ENDPOINT_URL")
+        url = url.replace(external_host, minio_host)
+    return url
 
 def get_queue():
     rds = Redis(host=os.getenv("REDIS_HOST"))
@@ -148,6 +160,8 @@ def jobs_post(job_list: List[Job]) -> Response:
             job.uid = str(uuid1())
         if job.gid is None:
             job.gid = str(uuid1())
+        if job.url is not None:
+            job.url = _use_internal_host(job.url)
         append_value(rds, _gid_key(job.gid), job.uid)
         append_value(rds, _project_key(job.project), job.uid)
         args = {
