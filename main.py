@@ -23,6 +23,7 @@ from models.job import Job
 from models.response import Response
 from config import LogConfig
 from urllib.parse import urlparse
+from uuid import uuid1
 
 dictConfig(LogConfig().dict())
 logger = logging.getLogger("transcode")
