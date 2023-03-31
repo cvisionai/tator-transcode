@@ -37,27 +37,27 @@ app = FastAPI(
 
 def _qjob_to_job(qjob):
     job = vars(qjob.args[0])
-    job.pop('work_dir', None)
-    job.pop('path', None)
-    job.pop('cleanup', None)
-    job.pop('extension', None)
+    job.pop("work_dir", None)
+    job.pop("path", None)
+    job.pop("cleanup", None)
+    job.pop("extension", None)
     status = qjob.get_status(refresh=True)
     if status in ["queued", "deferred", "scheduled"]:
-        job['status'] = "pending"
+        job["status"] = "pending"
     if status == "started":
-        job['status'] = "running"
+        job["status"] = "running"
     if status in ["canceled", "stopped"]:
-        job['status'] = "canceled"
+        job["status"] = "canceled"
     if status == "finished":
-        job['status'] = "succeeded"
+        job["status"] = "succeeded"
     if status == "failed":
-        job['status'] = status
+        job["status"] = status
     if qjob.id is not None:
-        job['id'] = qjob.id
+        job["id"] = qjob.id
     if qjob.enqueued_at is not None:
-        job['start_time'] = qjob.enqueued_at.isoformat()
+        job["start_time"] = qjob.enqueued_at.isoformat()
     if qjob.ended_at is not None:
-        job['stop_time'] = qjob.ended_at.isoformat()
+        job["stop_time"] = qjob.ended_at.isoformat()
     return Job(**job)
 
 
@@ -68,17 +68,19 @@ def _gid_key(gid):
 def _project_key(project):
     return f"transcode_project_{project}"
 
+
 def _use_internal_host(url):
-    """ Checks if the download url contains localhost, if so
-        replaces external host with minio host.
+    """Checks if the download url contains localhost, if so
+    replaces external host with minio host.
     """
     hostname = urlparse(url).hostname
-    is_localhost = hostname in ['localhost', '127.0.0.1']
+    is_localhost = hostname in ["localhost", "127.0.0.1"]
     if is_localhost:
         external_host = os.getenv("DEFAULT_LIVE_EXTERNAL_HOST")
         minio_host = os.getenv("DEFAULT_LIVE_ENDPOINT_URL")
         url = url.replace(external_host, minio_host)
     return url
+
 
 def get_queue():
     rds = Redis(host=os.getenv("REDIS_HOST"))
@@ -91,16 +93,16 @@ def append_value(rds, key, value):
     if value_list is None:
         rds.set(key, value)
     else:
-        rds.set(key, value_list.decode('utf-8') + f",{value}")
+        rds.set(key, value_list.decode("utf-8") + f",{value}")
 
 
 def remove_value(rds, key, value):
     value_list = rds.get(key)
     if value_list is not None:
-        value_list = value_list.decode('utf-8').split(',')
+        value_list = value_list.decode("utf-8").split(",")
         if value in value_list:
             value_list.remove(value)
-        rds.set(key, ','.join(value_list))
+        rds.set(key, ",".join(value_list))
 
 
 def get_list(rds, key):
@@ -108,7 +110,7 @@ def get_list(rds, key):
     if value_list is None:
         value_list = []
     else:
-        value_list = value_list.decode('utf-8').split(",")
+        value_list = value_list.decode("utf-8").split(",")
     return value_list
 
 
@@ -166,14 +168,21 @@ def jobs_post(job_list: List[Job]) -> Response:
         append_value(rds, _gid_key(job.gid), job.uid)
         append_value(rds, _project_key(job.project), job.uid)
         args = {
-            **job.dict(), 
-            'path': None,
-            'work_dir': '/tmp',
-            'cleanup': False,
-            'extension': None
+            **job.dict(),
+            "path": None,
+            "work_dir": "/tmp",
+            "cleanup": False,
+            "extension": None,
         }
         args = SimpleNamespace(**args)
-        qjob_list.append(queue.enqueue('tator.transcode.__main__.transcode_main', args, job_id=job.uid, job_timeout=3600*96))
+        qjob_list.append(
+            queue.enqueue(
+                "tator.transcode.__main__.transcode_main",
+                args,
+                job_id=job.uid,
+                job_timeout=3600 * 96,
+            )
+        )
     return [_qjob_to_job(job) for job in qjob_list]
 
 

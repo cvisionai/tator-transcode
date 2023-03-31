@@ -10,7 +10,9 @@ class Job(BaseModel):
 
     url: str = Field(alias="url", description="URL where source video file is hosted.")
     size: int = Field(alias="size", description="Size of the video file in bytes.")
-    md5: str = Field(alias="md5", description="MD5 sum of up to the first 100MB of this file.")
+    md5: str = Field(
+        alias="md5", description="MD5 sum of up to the first 100MB of this file."
+    )
     host: str = Field(alias="host", description="Tator host URL.")
     token: str = Field(alias="token", description="Tator API token.")
     project: int = Field(
@@ -46,12 +48,12 @@ class Job(BaseModel):
     start_time: Optional[str] = Field(
         alias="start_time",
         default=None,
-        description="ISO8601 datetime string indicating start time of job."
+        description="ISO8601 datetime string indicating start time of job.",
     )
     stop_time: Optional[str] = Field(
         alias="stop_time",
         default=None,
-        description="ISO8601 datetime string indicating stop time of job."
+        description="ISO8601 datetime string indicating stop time of job.",
     )
 
     @validator("status")
