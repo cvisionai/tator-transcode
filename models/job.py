@@ -26,6 +26,7 @@ class Job(BaseModel):
     attributes: Optional[Dict[str, Any]] = Field(
         alias="attributes", description="Attributes to set on the media."
     )
+    email_spec: Optional[Dict[str, Any]] = Field(alias="email_spec", description="Email spec as defined in Tator Email REST endpoint.")
     media_id: Optional[int] = Field(alias="media_id", description="Media ID.")
     gid: Optional[str] = Field(alias="gid", description="Upload group ID.")
     uid: Optional[str] = Field(alias="uid", description="Upload unique ID.")
