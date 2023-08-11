@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Any, Union
+from typing import Optional, Dict, Any, Union
 from pydantic import BaseModel, Field, validator
 from dateutil.parser import parse
 
@@ -21,9 +21,10 @@ class Job(BaseModel):
     name: str = Field(alias="name", description="Name of the video file.")
     section: str = Field(alias="section", description="Media section name.")
     attributes: Optional[Dict[str, Any]] = Field(
-        alias="attributes", description="Attributes to set on the media."
+        None, alias="attributes", description="Attributes to set on the media."
     )
     email_spec: Optional[Dict[str, Any]] = Field(
+        None,
         alias="email_spec",
         description="Email spec as defined in Tator Email REST endpoint.",
     )
