@@ -1,4 +1,4 @@
-fastapi==0.88.0
+fastapi==0.101.0
 uvicorn[standard]==0.20.0
 pre-commit==2.21.0
 redis[hiredis]==4.4.0

@@ -1,21 +1,9 @@
 import os
 from logging.config import dictConfig
 import logging
-from typing import Dict, List, Union
+from typing import List, Union
 from types import SimpleNamespace
-from fastapi import (
-    FastAPI,
-    Body,
-    Cookie,
-    Depends,
-    Form,
-    Header,
-    Path,
-    Query,
-    Response,
-    Security,
-    status,
-)
+from fastapi import FastAPI, Body
 from redis import Redis
 from rq import Queue
 from rq.job import Job as Qjob
@@ -83,7 +71,7 @@ def _use_internal_host(url):
 
 
 def get_queue():
-    rds = Redis(host=os.getenv("REDIS_HOST"))
+    rds = Redis(host=os.getenv("REDIS_HOST", ""))
     queue = Queue("transcodes", connection=rds)
     return rds, queue
 
@@ -129,7 +117,7 @@ def jobs_delete(
     gid: Union[str, None] = None,
     project: Union[int, None] = None,
 ) -> Response:
-    rds, queue = get_queue()
+    rds, _ = get_queue()
     if gid is not None:
         uid_list = get_list(rds, _gid_key(gid))
     elif project is not None:
@@ -155,7 +143,7 @@ def jobs_delete(
     summary="Create one or more transcode jobs.",
     response_model_by_alias=True,
 )
-def jobs_post(job_list: List[Job]) -> Response:
+def jobs_post(job_list: List[Job]) -> List[Job]:
     rds, queue = get_queue()
     qjob_list = []
     for job in job_list:
@@ -201,7 +189,7 @@ def jobs_put(
     gid: Union[str, None] = None,
     project: Union[int, None] = None,
 ) -> List[Job]:
-    rds, queue = get_queue()
+    rds, _ = get_queue()
     if gid is not None:
         uid_list = get_list(rds, _gid_key(gid))
     elif project is not None:
