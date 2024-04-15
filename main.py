@@ -4,6 +4,7 @@ import logging
 from typing import List, Union
 from types import SimpleNamespace
 from fastapi import FastAPI, Body
+from fastapi.exceptions import RequestValidationError
 from redis import Redis
 from rq import Queue
 from rq.job import Job as Qjob
@@ -21,6 +22,11 @@ app = FastAPI(
     description="Simple transcode API",
     version="0.0.0",
 )
+
+@app.exception_handler(RequestValidationError)
+def validation_exception_handler(request, exc):
+    logger.error(f"Request validation error: {exc}")
+    return Response(message="Validation error!", error=str(exc))
 
 
 def _qjob_to_job(qjob):
@@ -145,35 +151,39 @@ def jobs_delete(
     response_model_by_alias=True,
 )
 def jobs_post(job_list: List[Job]) -> List[Job]:
-    rds, queue = get_queue()
-    qjob_list = []
-    for job in job_list:
-        if job.uid is None:
-            job.uid = str(uuid1())
-        if job.gid is None:
-            job.gid = str(uuid1())
-        if job.url is not None:
-            job.url = _use_internal_host(job.url)
-        append_value(rds, _gid_key(job.gid), job.uid)
-        append_value(rds, _project_key(job.project), job.uid)
-        args = {
-            **job.dict(),
-            "path": None,
-            "work_dir": "/tmp",
-            "cleanup": False,
-            "extension": None,
-            "hwaccel": False,
-        }
-        args = SimpleNamespace(**args)
-        qjob_list.append(
-            queue.enqueue(
-                "tator.transcode.__main__.transcode_main",
-                args,
-                job_id=job.uid,
-                job_timeout=3600 * 96,
+    try:
+        rds, queue = get_queue()
+        qjob_list = []
+        for job in job_list:
+            if job.uid is None:
+                job.uid = str(uuid1())
+            if job.gid is None:
+                job.gid = str(uuid1())
+            if job.url is not None:
+                job.url = _use_internal_host(job.url)
+            append_value(rds, _gid_key(job.gid), job.uid)
+            append_value(rds, _project_key(job.project), job.uid)
+            args = {
+                **job.dict(),
+                "path": None,
+                "work_dir": "/tmp",
+                "cleanup": False,
+                "extension": None,
+                "hwaccel": False,
+            }
+            args = SimpleNamespace(**args)
+            qjob_list.append(
+                queue.enqueue(
+                    "tator.transcode.__main__.transcode_main",
+                    args,
+                    job_id=job.uid,
+                    job_timeout=3600 * 96,
+                )
             )
-        )
-    return [_qjob_to_job(job) for job in qjob_list]
+        return [_qjob_to_job(job) for job in qjob_list]
+    except Exception as e:
+        logger.error(f"Error creating transcode jobs: {e}")
+        raise e
 
 
 @app.put(

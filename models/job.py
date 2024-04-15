@@ -19,7 +19,7 @@ class Job(BaseModel):
         alias="type", description="Unique integer specifying a media type."
     )
     name: str = Field(alias="name", description="Name of the video file.")
-    section: str = Field(alias="section", description="Media section name.")
+    section_id: int = Field(alias="section_id", description="Media section ID.")
     attributes: Optional[Dict[str, Any]] = Field(
         None, alias="attributes", description="Attributes to set on the media."
     )
