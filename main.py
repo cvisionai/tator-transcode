@@ -36,6 +36,7 @@ def _qjob_to_job(qjob):
     job.pop("cleanup", None)
     job.pop("extension", None)
     job.pop("hwaccel", None)
+    job.pop("force_fps", -1)
     status = qjob.get_status(refresh=True)
     if status in ["queued", "deferred", "scheduled"]:
         job["status"] = "pending"
@@ -170,6 +171,7 @@ def jobs_post(job_list: List[Job]) -> List[Job]:
                 "cleanup": False,
                 "extension": None,
                 "hwaccel": False,
+                "force_fps": -1, # TODO: could be exposed to REST
             }
             args = SimpleNamespace(**args)
             qjob_list.append(
