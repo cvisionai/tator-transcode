@@ -173,6 +173,7 @@ def jobs_post(job_list: List[Job]) -> List[Job]:
                 "hwaccel": False,
                 "force_fps": -1,  # TODO: could be exposed to REST
                 "inhibit_upload": False,
+                "bucket_id": None,
             }
             args = SimpleNamespace(**args)
             qjob_list.append(
